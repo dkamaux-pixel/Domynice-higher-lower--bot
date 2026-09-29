@@ -1,38 +1,54 @@
-const DERIV_APP_ID = "34xmNA7aCdIQnbxlGEhIw";
-const DERIV_WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${DERIV_APP_ID}`;
+const APP_ID = "34xmNA7aCdIQnbxlGEhIw";
+const WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`;
 
-let socket;
+let socket = null;
+
+function updateStatus(message) {
+  const status = document.getElementById("status");
+  if (status) {
+    status.textContent = message;
+  }
+}
 
 function connectDeriv() {
-  socket = new WebSocket(DERIV_WS_URL);
+  updateStatus("Connecting to Deriv...");
 
-  socket.onopen = () => {
+  if (socket) {
+    socket.close();
+  }
+
+  socket = new WebSocket(WS_URL);
+
+  socket.onopen = function () {
     console.log("Connected to Deriv");
+    updateStatus("Connected to Deriv");
+
+    socket.send(JSON.stringify({
+      active_symbols: "brief",
+      product_type: "basic"
+    }));
   };
 
-  socket.onmessage = (event) => {
+  socket.onmessage = function (event) {
     const data = JSON.parse(event.data);
     console.log("Deriv:", data);
   };
 
-  socket.onerror = (error) => {
-    console.error("Deriv connection error:", error);
+  socket.onerror = function (error) {
+    console.error("Deriv WebSocket error:", error);
+    updateStatus("Deriv connection error");
   };
 
-  socket.onclose = () => {
+  socket.onclose = function () {
     console.log("Disconnected from Deriv");
+    updateStatus("Disconnected from Deriv");
   };
 }
 
-function getDerivSocket() {
-  if (!socket || socket.readyState !== WebSocket.OPEN) {
-    connectDeriv();
-  }
-  return socket;
-}
+document.addEventListener("DOMContentLoaded", function () {
+  const button = document.getElementById("connectDeriv");
 
-window.DerivBot = {
-  connect: connectDeriv,
-  socket: getDerivSocket,
-  appId: DERIV_APP_ID
-};
+  if (button) {
+    button.addEventListener("click", connectDeriv);
+  }
+});
