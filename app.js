@@ -1,8 +1,6 @@
-
-const APP_ID = "34xmNA7aCdIQnbxlGEhIw";
-const WS_URL = "wss://ws.binaryws.com/websockets/v3";
-
-let socket = null;
+const DERIV_APP_ID = "34xmNA7aCdIQnbxlGEhIw";
+const REDIRECT_URI =
+  "https://domynice-higher-lower--bot.netlify.app/callback";
 
 function updateStatus(message) {
   const status = document.getElementById("status");
@@ -13,78 +11,37 @@ function updateStatus(message) {
 }
 
 function connectDeriv() {
-  updateStatus("Connecting to Deriv...");
+  updateStatus("Opening Deriv Login...");
 
-  if (socket) {
-    socket.close();
-    socket = null;
-  }
+  const authUrl =
+    "https://oauth.deriv.com/oauth2/authorize" +
+    "?app_id=" +
+    encodeURIComponent(DERIV_APP_ID) +
+    "&redirect_uri=" +
+    encodeURIComponent(REDIRECT_URI) +
+    "&scope=" +
+    encodeURIComponent("trade");
 
-  socket = new WebSocket(WS_URL);
-
-  socket.onopen = function () {
-    console.log("Connected to Deriv");
-    updateStatus("Connected to Deriv");
-
-    socket.send(
-      JSON.stringify({
-        active_symbols: "brief",
-        product_type: "basic",
-        req_id: 1
-      })
-    );
-  };
-
-  socket.onmessage = function (event) {
-    try {
-      const data = JSON.parse(event.data);
-
-      console.log("Deriv:", data);
-
-      if (data.error) {
-        console.error("Deriv error:", data.error);
-        updateStatus("Deriv error: " + data.error.message);
-        return;
-      }
-
-      if (data.msg_type === "active_symbols") {
-        console.log("Markets loaded:", data.active_symbols);
-        updateStatus("Connected to Deriv");
-      }
-    } catch (error) {
-      console.error("Response error:", error);
-    }
-  };
-
-  socket.onerror = function (error) {
-    console.error("WebSocket error:", error);
-    updateStatus("Deriv connection error");
-  };
-
-  socket.onclose = function (event) {
-    console.log(
-      "Disconnected from Deriv. Code:",
-      event.code,
-      "Reason:",
-      event.reason
-    );
-
-    if (event.code === 1000) {
-      updateStatus("Disconnected from Deriv");
-    } else {
-      updateStatus("Disconnected from Deriv (" + event.code + ")");
-    }
-
-    socket = null;
-  };
+  window.location.href = authUrl;
 }
 
 document.addEventListener("DOMContentLoaded", function () {
   const button = document.getElementById("connectDeriv");
 
   if (button) {
+    button.textContent = "Login / Sign Up";
     button.addEventListener("click", connectDeriv);
   } else {
-    console.error("Connect Deriv button not found");
+    console.error("Login button not found");
+  }
+
+  const currentUrl = new URL(window.location.href);
+
+  if (currentUrl.pathname === "/callback") {
+    updateStatus("Deriv authorization received. Processing...");
+    console.log(
+      "Deriv callback:",
+      Object.fromEntries(currentUrl.searchParams.entries())
+    );
   }
 });
