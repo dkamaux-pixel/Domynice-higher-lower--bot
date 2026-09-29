@@ -1,1 +1,50 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Domynice Higher/Lower Bot</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="container">
+
+    <div class="card">
+      <h1>Domynice Higher/Lower Bot</h1>
+      <p>Deriv trading platform</p>
+
+      <button id="connectDeriv">Connect Deriv</button>
+
+      <div id="status" class="status">
+        Not connected
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Trading Settings</h2>
+
+      <label for="market">Market</label>
+      <select id="market">
+        <option value="R_10">Volatility 10 Index</option>
+        <option value="R_25">Volatility 25 Index</option>
+        <option value="R_50">Volatility 50 Index</option>
+        <option value="R_75">Volatility 75 Index</option>
+        <option value="R_100">Volatility 100 Index</option>
+      </select>
+
+      <label for="stake">Stake</label>
+      <input id="stake" type="number" min="0.35" step="0.01" value="1">
+
+      <button id="higherButton">Higher</button>
+      <br><br>
+      <button id="lowerButton">Lower</button>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
