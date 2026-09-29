@@ -15,34 +15,68 @@ function connectDeriv() {
 
   if (socket) {
     socket.close();
+    socket = null;
   }
 
-  socket = new WebSocket(WS_URL);
+  try {
+    socket = new WebSocket(WS_URL);
 
-  socket.onopen = function () {
-    console.log("Connected to Deriv");
-    updateStatus("Connected to Deriv");
+    socket.onopen = function () {
+      console.log("Deriv WebSocket connected");
+      updateStatus("Connected to Deriv");
 
-    socket.send(JSON.stringify({
-      active_symbols: "brief",
-      product_type: "basic"
-    }));
-  };
+      socket.send(
+        JSON.stringify({
+          active_symbols: "brief",
+          product_type: "basic"
+        })
+      );
+    };
 
-  socket.onmessage = function (event) {
-    const data = JSON.parse(event.data);
-    console.log("Deriv:", data);
-  };
+    socket.onmessage = function (event) {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("Deriv response:", data);
 
-  socket.onerror = function (error) {
-    console.error("Deriv WebSocket error:", error);
-    updateStatus("Deriv connection error");
-  };
+        if (data.error) {
+          console.error("Deriv API error:", data.error);
+          updateStatus(`Deriv error: ${data.error.message || "API error"}`);
+          return;
+        }
 
-  socket.onclose = function () {
-    console.log("Disconnected from Deriv");
-    updateStatus("Disconnected from Deriv");
-  };
+        if (data.msg_type === "active_symbols") {
+          updateStatus("Connected to Deriv");
+          console.log("Markets loaded:", data.active_symbols);
+        }
+      } catch (error) {
+        console.error("Invalid Deriv response:", error);
+      }
+    };
+
+    socket.onerror = function (error) {
+      console.error("Deriv WebSocket error:", error);
+      updateStatus("Deriv connection error");
+    };
+
+    socket.onclose = function (event) {
+      console.log(
+        "Deriv WebSocket closed:",
+        event.code,
+        event.reason || "No reason provided"
+      );
+
+      if (event.code !== 1000) {
+        updateStatus(`Disconnected from Deriv (${event.code})`);
+      } else {
+        updateStatus("Disconnected from Deriv");
+      }
+
+      socket = null;
+    };
+  } catch (error) {
+    console.error("Failed to create WebSocket:", error);
+    updateStatus("Unable to connect to Deriv");
+  }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -50,5 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (button) {
     button.addEventListener("click", connectDeriv);
+  } else {
+    console.error("Connect Deriv button not found");
   }
 });
