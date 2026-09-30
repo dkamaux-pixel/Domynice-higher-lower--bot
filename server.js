@@ -8,10 +8,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Serve the bot's frontend files
 app.use(express.static(__dirname));
 
-// Health check for Render
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
@@ -19,8 +17,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Send the main app
-app.get("*", (req, res) => {
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
