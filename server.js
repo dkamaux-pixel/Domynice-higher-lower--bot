@@ -1,5 +1,5 @@
 
-```js
+js
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -92,4 +92,4 @@ app.use((req, res) => {
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Domynice Higher & Lower Bot running on port " + PORT);
 });
-```
+
